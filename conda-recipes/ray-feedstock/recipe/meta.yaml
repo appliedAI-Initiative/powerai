@@ -1,5 +1,5 @@
 {% set name = "ray" %}
-{% set version = "0.8.1" %}
+{% set version = "0.8.7" %}
 
 package:
   name: {{ name|lower }}
@@ -9,12 +9,11 @@ source:
   git_url: https://github.com/ray-project/ray.git
   git_rev: ray-{{ version }}
   patches:
-    - redis-bazel-build.patch
     - 0001-Added-a-patch-to-fix-boost-compilation-on-ppc64le.patch
-    - 0002-Arrow-Fixes-PPC.patch
+    - fixes-{{ version }}.patch
 
 build:
-  number: 1
+  number: 3
   entry_points:
     - ray=ray.scripts.scripts:main
     - rllib=ray.rllib.scripts:cli [rllib]
@@ -25,7 +24,7 @@ requirements:
     - python
     - cython>=0.29
   build:
-    - python
+    - python>=3.7
     - cython>=0.29
     - bazel==1.0.0
     - git
@@ -37,8 +36,8 @@ requirements:
     - {{ compiler('cxx') }}
     - nodejs
   run:
-    - python
-    - numpy >=1.16
+    - python==3.7.7
+    - numpy>=1.16
     - filelock
     - jsonschema
     - funcsigs
@@ -53,6 +52,9 @@ requirements:
     - protobuf >=3.8.0
     - cloudpickle
     - pyarrow
+    - setproctitle
+    - psutil
+    - msgpack-python
 
 test:
   imports:

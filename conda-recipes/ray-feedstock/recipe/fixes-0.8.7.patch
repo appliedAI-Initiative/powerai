@@ -1,0 +1,44 @@
+diff --git a/python/MANIFEST.in b/python/MANIFEST.in
+index 9ee720972..171829908 100644
+--- a/python/MANIFEST.in
++++ b/python/MANIFEST.in
+@@ -1 +1 @@
+-include ray/python/ray/autoscaler/ray-schema.json
+\ No newline at end of file
++include ray/autoscaler/ray-schema.json
+diff --git a/python/setup.py b/python/setup.py
+index 64623177b..36f167364 100644
+--- a/python/setup.py
++++ b/python/setup.py
+@@ -4,6 +4,7 @@ import glob
+ import io
+ import logging
+ import os
++import platform
+ import re
+ import shutil
+ import subprocess
+@@ -273,11 +274,12 @@ def build(build_python, build_java):
+     # version of Python to build packages inside the build.sh script. Note
+     # that certain flags will not be passed along such as --user or sudo.
+     # TODO(rkn): Fix this.
+-    if not os.getenv("SKIP_THIRDPARTY_INSTALL"):
++    if not os.getenv("SKIP_THIRDPARTY_INSTALL") and \
++        not platform.machine().startswith('ppc64'):
+         pip_packages = ["psutil", "setproctitle"]
+         subprocess.check_call(
+             [
+-                sys.executable, "-m", "pip", "install", "-q",
++                "python", "-m", "pip", "install", "-q",
+                 "--target=" + os.path.join(ROOT_DIR, THIRDPARTY_SUBDIR)
+             ] + pip_packages,
+             env=dict(os.environ, CC="gcc"))
+@@ -298,7 +300,8 @@ def build(build_python, build_java):
+     bazel_targets += ["//java:ray_java_pkg"] if build_java else []
+     return bazel_invoke(
+         subprocess.check_call,
+-        ["build", "--verbose_failures", "--"] + bazel_targets,
++        ["build", "--verbose_failures", "--jobs=40", # "--action_env=CONDACC=$CC",
++         "--"] + bazel_targets,
+         env=bazel_env)
+

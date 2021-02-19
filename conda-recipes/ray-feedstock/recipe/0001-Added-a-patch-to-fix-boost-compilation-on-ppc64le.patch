@@ -20,63 +20,108 @@ index e477009..d861594 100644
 +            "//thirdparty/patches:rules_boost-define-ppc64le.patch",
          ],
      )
+
  
 diff --git a/thirdparty/patches/rules_boost-define-ppc64le.patch b/thirdparty/patches/rules_boost-define-ppc64le.patch
 new file mode 100644
-index 0000000..bdd2be6
+index e69de29bb..bd304fbb0
 --- /dev/null
 +++ b/thirdparty/patches/rules_boost-define-ppc64le.patch
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,96 @@
 +diff --git BUILD.boost BUILD.boost
 +--- BUILD.boost
 ++++ BUILD.boost
-+@@ -58,6 +58,15 @@ config_setting(
++@@ -49,7 +49,7 @@
 + )
 + 
 + config_setting(
++-    name = "linux_ppc",
 ++    name = "linux_ppc64le",
-++    constraint_values = [
-++        "@bazel_tools//platforms:linux",
-++        "@bazel_tools//platforms:ppc",
-++    ],
-++    visibility = ["//visibility:public"],
-++)
-++
-++config_setting(
-+     name = "osx_x86_64",
 +     constraint_values = [
-+         "@bazel_tools//platforms:osx",
-+@@ -101,6 +110,11 @@ BOOST_CTX_ASM_SOURCES = select({
-+         "libs/context/src/asm/make_x86_64_sysv_elf_gas.S",
-+         "libs/context/src/asm/ontop_x86_64_sysv_elf_gas.S",
++         "@bazel_tools//platforms:linux",
++         "@bazel_tools//platforms:ppc",
++@@ -105,7 +105,7 @@
++         "libs/context/src/asm/make_arm_aapcs_elf_gas.S",
++         "libs/context/src/asm/ontop_arm_aapcs_elf_gas.S",
 +     ],
++-    ":linux_ppc": [
 ++    ":linux_ppc64le": [
-++        "libs/context/src/asm/jump_ppc64_sysv_elf_gas.S",
-++        "libs/context/src/asm/make_ppc64_sysv_elf_gas.S",
-++        "libs/context/src/asm/ontop_ppc64_sysv_elf_gas.S",
-++    ],
-+     ":osx_x86_64": [
-+         "libs/context/src/asm/jump_x86_64_sysv_macho_gas.S",
-+         "libs/context/src/asm/make_x86_64_sysv_macho_gas.S",
-+@@ -157,6 +171,10 @@ BOOST_FIBER_NUMA_SRCS = select({
-+         "libs/fiber/src/numa/windows/pin_thread.cpp",
-+         "libs/fiber/src/numa/windows/topology.cpp",
++         "libs/context/src/asm/jump_ppc64_sysv_elf_gas.S",
++         "libs/context/src/asm/make_ppc64_sysv_elf_gas.S",
++         "libs/context/src/asm/ontop_ppc64_sysv_elf_gas.S",
++@@ -163,10 +163,10 @@
++ BOOST_FIBER_NUMA_SRCS = select({
++     ":linux_arm": [
 +     ],
++-    ":linux_ppc": [
 ++    ":linux_ppc64le": [
-++        "libs/fiber/src/numa/linux/pin_thread.cpp",
-++        "libs/fiber/src/numa/linux/topology.cpp",
++         "libs/fiber/src/numa/linux/pin_thread.cpp",
++         "libs/fiber/src/numa/linux/topology.cpp",
++-    ], # MAYBE SHOULD BE BLANK
 ++    ],
-+     "//conditions:default": [],
-+ })
-+ 
-+@@ -1603,6 +1621,7 @@ boost_library(
++     ":linux_x86_64": [
++         "libs/fiber/src/numa/linux/pin_thread.cpp",
++         "libs/fiber/src/numa/linux/topology.cpp",
++@@ -1013,14 +1013,14 @@
++     name = "locale",
++     srcs = select({
++             ":linux_arm": BOOST_LOCALE_POSIX_SOURCES,
++-            ":linux_ppc": BOOST_LOCALE_POSIX_SOURCES,
+++            ":linux_ppc64le": BOOST_LOCALE_POSIX_SOURCES,
++             ":linux_x86_64": BOOST_LOCALE_POSIX_SOURCES,
++             ":osx_x86_64": BOOST_LOCALE_POSIX_SOURCES,
++             ":windows_x86_64": BOOST_LOCALE_WIN32_SOURCES,
++             }),
++     copts = select({
++             ":linux_arm": BOOST_LOCALE_POSIX_COPTS,
++-            ":linux_ppc": BOOST_LOCALE_POSIX_COPTS,
+++            ":linux_ppc64le": BOOST_LOCALE_POSIX_COPTS,
++             ":linux_x86_64": BOOST_LOCALE_POSIX_COPTS,
++             ":osx_x86_64": BOOST_LOCALE_POSIX_COPTS,
++             ":windows_x86_64": BOOST_LOCALE_WIN32_COPTS,
++@@ -1621,7 +1621,7 @@
++         "libs/stacktrace/src/basic.cpp",
++         "libs/stacktrace/src/noop.cpp",
++     ],
++-    ":linux_ppc": [
+++    ":linux_ppc64le": [
++         "libs/stacktrace/src/backtrace.cpp",
++     ],
++     ":linux_x86_64": [
++@@ -1647,7 +1647,7 @@
++     }),
++     exclude_src = ["libs/stacktrace/src/*.cpp"],
++     linkopts = select({
++-        ":linux_ppc": [
+++        ":linux_ppc64le": [
++             "-lbacktrace -ldl",
++         ],
++         ":linux_x86_64": [
++@@ -1728,7 +1728,7 @@
++     }),
++     defines = select({
 +         ":linux_arm": [],
++-        ":linux_ppc": [],
+++        ":linux_ppc64le": [],
 +         ":linux_x86_64": [],
 +         ":osx_x86_64": [],
-++        ":linux_ppc64le": [],
 +         ":windows_x86_64": [
-+             "BOOST_ALL_NO_LIB",
-+             "BOOST_THREAD_BUILD_LIB",
--- 
-1.8.3.1
++@@ -2057,7 +2057,7 @@
++ BOOST_LOG_CFLAGS = select({
++     ":linux_arm": [
++     ],
++-    ":linux_ppc": [
+++    ":linux_ppc64le": [
++     ],
++     ":x86_64": [
++         "-msse4.2",
++@@ -2091,7 +2091,7 @@
++ BOOST_LOG_SSSE3_DEP = select({
++     ":linux_arm": [
++     ],
++-    ":linux_ppc": [
+++    ":linux_ppc64le": [
++     ],
++     ":x86_64": [
++         ":log_dump_ssse3",
 
