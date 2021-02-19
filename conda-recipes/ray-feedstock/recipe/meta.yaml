@@ -9,7 +9,7 @@ source:
   git_url: https://github.com/ray-project/ray.git
   git_rev: ray-{{ version }}
   patches:
-    - 0001-Added-a-patch-to-fix-boost-compilation-on-ppc64le.patch
+    - fix-boost-bazel.patch 
     - fixes-{{ version }}.patch
 
 build:
